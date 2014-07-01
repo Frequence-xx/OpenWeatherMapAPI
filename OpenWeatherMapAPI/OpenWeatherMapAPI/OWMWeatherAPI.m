@@ -7,7 +7,7 @@
 //
 
 #import "OWMWeatherAPI.h"
-#import "AFJSONRequestOperation.h"
+#import "AFHTTPRequestOperation.h"
 
 @interface OWMWeatherAPI () {
     NSString *_baseURL;
@@ -98,7 +98,7 @@
         temp[@"max"] = [self convertTemp:temp[@"max"]];
         temp[@"min"] = [self convertTemp:temp[@"min"]];
         temp[@"morn"] = [self convertTemp:temp[@"morn"]];
-        temp[@"night"] = [self convertTemp:temp[@"night"]];        
+        temp[@"night"] = [self convertTemp:temp[@"night"]];
         
         dic[@"temp"] = [temp copy];
     }
@@ -125,7 +125,7 @@
     }
     
     dic[@"dt"] = [self convertToDate:dic[@"dt"]];
-
+    
     return [dic copy];
 }
 
@@ -151,18 +151,36 @@
     
     NSURLRequest *request = [NSURLRequest requestWithURL:url];
     
-    AFJSONRequestOperation *operation = [AFJSONRequestOperation JSONRequestOperationWithRequest:request success:^(NSURLRequest *request, NSHTTPURLResponse *response, id JSON) {
-
+    //    AFJSONRequestOperation *operation = [AFJSONRequestOperation JSONRequestOperationWithRequest:request success:^(NSURLRequest *request, NSHTTPURLResponse *response, id JSON) {
+    //
+    //        // callback on the caller queue
+    //        NSDictionary *res = [self convertResult:JSON];
+    //        [callerQueue addOperationWithBlock:^{
+    //            callback(nil, res);
+    //        }];
+    //
+    //
+    //    } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
+    //
+    //        // callback on the caller queue
+    //        [callerQueue addOperationWithBlock:^{
+    //            callback(error, nil);
+    //        }];
+    //
+    //    }];
+    //    [_weatherQueue addOperation:operation];
+    
+    AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc] initWithRequest:request];
+    operation.responseSerializer = [AFJSONResponseSerializer serializer];
+    [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         // callback on the caller queue
-        NSDictionary *res = [self convertResult:JSON];
+        NSDictionary *res = [self convertResult:responseObject];
         [callerQueue addOperationWithBlock:^{
             callback(nil, res);
         }];
-
         
-    } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
-
-        // callback on the caller queue
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        //NSLog(@"error: %@", operation.responseString);
         [callerQueue addOperationWithBlock:^{
             callback(error, nil);
         }];
@@ -192,7 +210,7 @@
                                 @"uk" : @"ua",
                                 @"pt-PT" : @"pt",
                                 @"zh-Hans" : @"zh_cn",
-                                @"zh-Hant" : @"zh_tw",                                
+                                @"zh-Hant" : @"zh_tw",
                                 };
     
     NSString *l = [langCodes objectForKey:lang];
@@ -229,7 +247,7 @@
     
     NSString *method = [NSString stringWithFormat:@"/weather?lat=%f&lon=%f",
                         coordinate.latitude, coordinate.longitude ];
-    [self callMethod:method withCallback:callback];    
+    [self callMethod:method withCallback:callback];
     
 }
 
@@ -237,14 +255,14 @@
                   withCallback:( void (^)( NSError* error, NSDictionary *result ) )callback
 {
     NSString *method = [NSString stringWithFormat:@"/weather?id=%@", cityId];
-    [self callMethod:method withCallback:callback];    
+    [self callMethod:method withCallback:callback];
 }
 
 
 #pragma mark forcast
 
 -(void) forecastWeatherByCityName:(NSString *) name
-                    withCallback:( void (^)( NSError* error, NSDictionary *result ) )callback
+                     withCallback:( void (^)( NSError* error, NSDictionary *result ) )callback
 {
     
     NSString *method = [NSString stringWithFormat:@"/forecast?q=%@", name];
@@ -253,7 +271,7 @@
 }
 
 -(void) forecastWeatherByCoordinate:(CLLocationCoordinate2D) coordinate
-                      withCallback:( void (^)( NSError* error, NSDictionary *result ) )callback
+                       withCallback:( void (^)( NSError* error, NSDictionary *result ) )callback
 {
     
     NSString *method = [NSString stringWithFormat:@"/forecast?lat=%f&lon=%f",
@@ -263,7 +281,7 @@
 }
 
 -(void) forecastWeatherByCityId:(NSString *) cityId
-                  withCallback:( void (^)( NSError* error, NSDictionary *result ) )callback
+                   withCallback:( void (^)( NSError* error, NSDictionary *result ) )callback
 {
     NSString *method = [NSString stringWithFormat:@"/forecast?id=%@", cityId];
     [self callMethod:method withCallback:callback];
@@ -273,7 +291,7 @@
 
 -(void) dailyForecastWeatherByCityName:(NSString *) name
                              withCount:(int) count
-                          andCallback:( void (^)( NSError* error, NSDictionary *result ) )callback
+                           andCallback:( void (^)( NSError* error, NSDictionary *result ) )callback
 {
     
     NSString *method = [NSString stringWithFormat:@"/forecast/daily?q=%@&cnt=%d", name, count];
@@ -283,7 +301,7 @@
 
 -(void) dailyForecastWeatherByCoordinate:(CLLocationCoordinate2D) coordinate
                                withCount:(int) count
-                            andCallback:( void (^)( NSError* error, NSDictionary *result ) )callback
+                             andCallback:( void (^)( NSError* error, NSDictionary *result ) )callback
 {
     
     NSString *method = [NSString stringWithFormat:@"/forecast/daily?lat=%f&lon=%f&cnt=%d",
@@ -294,7 +312,7 @@
 
 -(void) dailyForecastWeatherByCityId:(NSString *) cityId
                            withCount:(int) count
-                   andCallback:( void (^)( NSError* error, NSDictionary *result ) )callback
+                         andCallback:( void (^)( NSError* error, NSDictionary *result ) )callback
 {
     NSString *method = [NSString stringWithFormat:@"/forecast?id=%@&cnt=%d", cityId, count];
     [self callMethod:method withCallback:callback];
