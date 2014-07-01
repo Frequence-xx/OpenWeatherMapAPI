@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
   s.license      = { :type => 'MIT', :file => 'LICENSE'}
   s.author       = { "Adrian Bak" => "valinorsgatekeeper@gmail.com" }
   s.source       = { :git => "https://github.com/Frequence/OpenWeatherMapAPI.git", :tag => "0.0.5" }
-  s.platform     = :ios, '5.0'
+  s.platform     = :ios, '6.1'
   s.source_files = 'OpenWeatherMapAPI/OpenWeatherMapAPI'
   s.public_header_files = 'OpenWeatherMapAPI/OpenWeatherMapAPI/*.h'
   s.requires_arc = true
